@@ -14,8 +14,11 @@ import { Logo } from '../../components/Logo'
 import { FoodList } from '../../components/FoodList'
 
 import api from '../../services/api'
+import { useNavigation } from '@react-navigation/native'
 
 export function Home() {
+  const navigation = useNavigation()
+
   const [inputValue, setInputValue] = useState('')
   const [foods, setFoods] = useState([])
 
@@ -29,7 +32,10 @@ export function Home() {
   }, [])
 
   function handleSearch() {
-    console.log('Buscar:', inputValue)
+    if (!inputValue) return
+
+    navigation.navigate('Search', { name: inputValue })
+    setInputValue('')
   }
 
   return (
