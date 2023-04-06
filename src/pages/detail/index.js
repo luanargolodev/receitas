@@ -6,17 +6,21 @@ import {
   Pressable,
   ScrollView,
   Image,
+  Modal,
+  Share,
 } from 'react-native'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { Entypo, AntDesign, Feather } from '@expo/vector-icons'
 
 import { Ingredients } from '../../components/Ingredients'
 import { Instructions } from '../../components/Instructions'
+import { Video } from '../../components/Video'
 
 export function Detail() {
   const route = useRoute()
   const navigation = useNavigation()
   const [isFavorite, setIsFavorite] = useState(false)
+  const [isModalVisible, setIsModalVisible] = useState(false)
 
   function handleFavorite() {
     setIsFavorite(!isFavorite)
@@ -39,13 +43,28 @@ export function Detail() {
     })
   }, [navigation, route.params?.data, isFavorite])
 
+  function handleOpenVideo() {
+    setIsModalVisible(!isModalVisible)
+  }
+
+  async function shareReceipe() {
+    try {
+      await Share.share({
+        url: route.params?.data.video,
+        message: `Olha essa receita que eu encontrei: ${route.params?.data.name}`,
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: 14 }}
       style={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <Pressable>
+      <Pressable onPress={handleOpenVideo}>
         <View style={styles.playIcon}>
           <AntDesign name="playcircleo" size={48} color="#fafafa" />
         </View>
@@ -62,7 +81,7 @@ export function Detail() {
             {route.params?.data.total_ingredients} ingredientes
           </Text>
         </View>
-        <Pressable>
+        <Pressable onPress={shareReceipe}>
           <Feather name="share-2" size={24} color="#121212" />
         </Pressable>
       </View>
@@ -78,6 +97,13 @@ export function Detail() {
       {route.params?.data.instructions.map((item, index) => (
         <Instructions key={item.id} data={item} index={index} />
       ))}
+
+      <Modal visible={isModalVisible} animationType="slide">
+        <Video
+          handleClose={() => setIsModalVisible(!isModalVisible)}
+          url={route.params?.data.video}
+        />
+      </Modal>
     </ScrollView>
   )
 }
