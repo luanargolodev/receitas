@@ -16,32 +16,47 @@ import { Ingredients } from '../../components/Ingredients'
 import { Instructions } from '../../components/Instructions'
 import { Video } from '../../components/Video'
 
+import { isFavorite, saveFavorite, removeFavorite } from '../../utils/storage'
+
 export function Detail() {
   const route = useRoute()
   const navigation = useNavigation()
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [favorite, setIsFavorite] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
 
-  function handleFavorite() {
-    setIsFavorite(!isFavorite)
-  }
-
   useLayoutEffect(() => {
+    async function getStatusFavorites() {
+      const status = await isFavorite(route.params?.data)
+      setIsFavorite(status)
+    }
+
+    getStatusFavorites()
+
     navigation.setOptions({
       title: route.params?.data
         ? route.params?.data.name
         : 'Detalhes da receita',
       headerRight: () => (
-        <Pressable onPress={handleFavorite}>
-          <Entypo
-            name={isFavorite ? 'heart' : 'heart-outlined'}
-            size={24}
-            color="red"
-          />
+        <Pressable onPress={() => handleFavorite(route.params?.data)}>
+          {favorite ? (
+            <Entypo name={'heart'} size={24} color="red" />
+          ) : (
+            <Entypo name={'heart-outlined'} size={24} color="red" />
+          )}
         </Pressable>
       ),
     })
-  }, [navigation, route.params?.data, isFavorite])
+  }, [navigation, route.params?.data, favorite])
+
+  async function handleFavorite(receipe) {
+    if (favorite) {
+      await removeFavorite(receipe.id)
+      setIsFavorite(false)
+    } else {
+      await saveFavorite(receipe)
+      setIsFavorite(true)
+    }
+  }
 
   function handleOpenVideo() {
     setIsModalVisible(!isModalVisible)
